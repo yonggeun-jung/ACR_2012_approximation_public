@@ -189,8 +189,8 @@ foreach s of local sectors {
 
     mat RS[`row', 8] = (`Depss'/(4-1)) * `ln_lam' * 100
 
-    local epools = -`b1s'
-    if `epools' > 0 mat RS[`row', 9] = (`Depss'/((4-1)*`epools')) * `ln_lam' * 100
+    * Melitz bound: use pooled eps_pool (linear PPML), not quadratic beta1.
+    mat RS[`row', 9] = (`Depss'/((4-1)*RS[`row', 3])) * `ln_lam' * 100
 }
 
 mat colnames RS = hs2 n_obs eps_pool beta2 se_b2 p_b2 Delta_eps bnd_ek bnd_mel
