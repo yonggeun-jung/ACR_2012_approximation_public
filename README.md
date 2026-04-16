@@ -1,52 +1,52 @@
-# Replication
+# Replication Package
 
-**When Are Sufficient Statistics Sufficient? Bounding Gains-from-Trade Errors**  
-Yonggeun Jung, University of Florida
+This repository contains code and processed replication datasets for:
+**When Are Sufficient Statistics Sufficient? Bounding Gains-from-Trade Errors**.
 
-## Layout
+## Repository structure
 
-```
+```text
 data/
-  master_gravity_agg.dta   Built by scripts/01_build_master.do (CEPII aggregate panel)
-  master_gravity_sec.dta   Built by scripts/01_build_master.do (BACI 2019 sector panel)
-  raw/                     Large raw files (git-ignored)
+  master_gravity_agg.dta   Built by scripts/01_build_master.do (aggregate panel)
+  master_gravity_sec.dta   Built by scripts/01_build_master.do (HS2 sector panel, 2019)
+  raw/                     Large third-party raw files (git-ignored)
 
 scripts/
-  01_build_master.do       Builds master_gravity_agg.dta + master_gravity_sec.dta
-  02_mc_validation.py      Monte Carlo, CSV tables, fig_elasticity_profile_ek.pdf, fig_elasticity_profile_melitz.pdf
-  03_empirical.do          Aggregate + sectoral PPML diagnostics → CSV tables
-  distributions.py         DGPs for 02_mc_validation.py
+  01_build_master.do       Builds master datasets from CEPII Gravity + BACI
+  02_mc_validation.py      Runs Monte Carlo validation and writes figures/tables
+  03_empirical.do          Runs aggregate/sectoral PPML diagnostics
+  distributions.py         DGP helper functions for Monte Carlo
 
 output/
-  tables/                  CSV
-  figures/                 PDF (e.g. fig_elasticity_profile_ek.pdf, fig_elasticity_profile_melitz.pdf)
+  tables/                  CSV outputs
+  figures/                 PDF outputs
 ```
 
-## Software
+## Requirements
 
-- Stata 17+ with `ppmlhdfe`, `reghdfe`, `ftools` (03_empirical.do can install missing packages)
-- Python 3.10+ with NumPy, SciPy, Matplotlib
+- Stata 17+ (`ppmlhdfe`, `reghdfe`, `ftools`; installable from within the do-file if needed)
+- Python 3.10+ with `numpy`, `scipy`, `matplotlib`
 
-## Raw data setup (not in this repository)
+## Raw data (not distributed here)
 
-`01_build_master.do` does **not** fetch data automatically.
-You must prepare two raw sources locally before running it:
+Raw CEPII/BACI files are third-party data and are intentionally excluded from this public repository.
 
-1. Download CEPII Gravity from [CEPII Gravity](https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=8), including **`Gravity_V202211.dta`**.
-2. Download BACI from [CEPII BACI](https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37), then put **`BACI_HS02_Y2019_V202601.csv`** and **`country_codes_V202601.csv`** in `data/raw/`.
-3. In `scripts/01_build_master.do`, set `global rawdata` to the folder containing `Gravity_V202211.dta`. (`global bacidir` defaults to `../data/raw`.)
+1. Download CEPII Gravity from [CEPII Gravity](https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=8) and prepare `Gravity_V202211.dta`.
+2. Download CEPII BACI from [CEPII BACI](https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37) and place these files in `data/raw/`:
+   - `BACI_HS02_Y2019_V202601.csv`
+   - `country_codes_V202601.csv`
+3. In `scripts/01_build_master.do`, set:
+   - `global rawdata` to the directory containing `Gravity_V202211.dta`
+   - `global bacidir` to the directory containing BACI CSV files (default: `../data/raw`)
 
-The replication package ships code and generated master files only; CEPII/BACI raw files are third-party and must be downloaded manually.
+## How to run
 
-## Run (from `scripts/`)
+From `scripts/`:
 
 ```bash
-cd scripts
 stata-mp -b do 01_build_master.do
 python3 02_mc_validation.py
 stata-mp -b do 03_empirical.do
 ```
 
-Use `stata-se` or `stata` instead of `stata-mp` if needed.  
-`01_build_master.do` will fail unless CEPII/BACI raw files are prepared as above.  
-Steps 2–3 only need `data/master_gravity_agg.dta` and `data/master_gravity_sec.dta`.
+If needed, use `stata` or `stata-se` instead of `stata-mp`.

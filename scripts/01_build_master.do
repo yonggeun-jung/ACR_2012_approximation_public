@@ -24,7 +24,7 @@ global bacidir "../data/raw"
 use "$rawdata/Gravity_V202211.dta", clear
 
 keep year country_id_o country_id_d iso3_o iso3_d ///
-     tradeflow_baci dist contig comlang_off ///
+     tradeflow_baci dist contig comlang_off col_dep_ever rta_coverage ///
      country_exists_o country_exists_d gdp_o gdp_d
 
 keep if year >= 2015 & year <= 2019
@@ -64,7 +64,7 @@ di as txt "[OK] aggregate master: ../data/master_gravity_agg.dta  (N=`=_N')"
 * Build sectoral bilateral panel (BACI HS02, 2019 only).
 preserve
     keep if year == 2019
-    keep iso3_o iso3_d dist ln_dist
+    keep iso3_o iso3_d dist ln_dist contig comlang_off col_dep_ever rta_coverage
     duplicates drop iso3_o iso3_d, force
     gen ln_dist2 = ln_dist^2
     tempfile dist_data
