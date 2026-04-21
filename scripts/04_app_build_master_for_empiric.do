@@ -1,10 +1,10 @@
 /*
-  01_build_master.do
+  04_app_build_master_for_empiric.do
   Build master datasets used by empirical scripts.
 
   Outputs
-    ../data/master_gravity_agg.dta
-    ../data/master_gravity_sec.dta
+    ../data/cepii/master_gravity_agg.dta
+    ../data/cepii/master_gravity_sec.dta
 
   Manual raw-data requirements (not shipped in replication package)
     CEPII Gravity: https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=8
@@ -17,9 +17,17 @@
 clear all
 set more off
 
-* Set paths before running.
-global rawdata "../data/raw"
-global bacidir "../data/raw"
+* Resolve project-relative paths whether run from repo root or scripts/.
+local pwd_now "`c(pwd)'"
+if regexm("`pwd_now'", "/scripts/?$") {
+    global PROJROOT ".."
+}
+else {
+    global PROJROOT "."
+}
+
+global rawdata "$PROJROOT/data/cepii/raw"
+global bacidir "$PROJROOT/data/cepii/raw"
 
 use "$rawdata/Gravity_V202211.dta", clear
 
@@ -58,8 +66,8 @@ gen ln_dist2 = ln_dist^2
 egen pair_id = group(country_id_o country_id_d)
 
 compress
-save "../data/master_gravity_agg.dta", replace
-di as txt "[OK] aggregate master: ../data/master_gravity_agg.dta  (N=`=_N')"
+save "$PROJROOT/data/cepii/master_gravity_agg.dta", replace
+di as txt "[OK] aggregate master: $PROJROOT/data/cepii/master_gravity_agg.dta  (N=`=_N')"
 
 * Build sectoral bilateral panel (BACI HS02, 2019 only).
 preserve
@@ -117,5 +125,5 @@ rename v trade
 merge m:1 iso3_o iso3_d using `dist_data', keep(match) nogen
 egen pair_id = group(iso3_o iso3_d)
 compress
-save "../data/master_gravity_sec.dta", replace
-di as txt "[OK] sectoral master:  ../data/master_gravity_sec.dta  (N=`=_N')"
+save "$PROJROOT/data/cepii/master_gravity_sec.dta", replace
+di as txt "[OK] sectoral master:  $PROJROOT/data/cepii/master_gravity_sec.dta  (N=`=_N')"

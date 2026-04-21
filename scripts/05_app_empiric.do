@@ -1,10 +1,10 @@
 /*
-  03_empirical.do
+  05_app_empiric.do
   Aggregate + sectoral PPML diagnostics for ACR bounds.
 
-  Inputs (built by 01_build_master.do)
-    ../data/master_gravity_agg.dta
-    ../data/master_gravity_sec.dta
+  Inputs (built by 04_app_build_master_for_empiric.do)
+    ../data/cepii/master_gravity_agg.dta
+    ../data/cepii/master_gravity_sec.dta
 
   Outputs
     ../output/tables/table_lambda.csv
@@ -18,6 +18,16 @@
 clear all
 set more off
 
+local pwd_now "`c(pwd)'"
+if regexm("`pwd_now'", "/scripts/?$") {
+    global PROJROOT ".."
+}
+else {
+    global PROJROOT "."
+}
+global DATA_CEP "$PROJROOT/data/cepii"
+global OUTTAB "$PROJROOT/output/tables"
+
 foreach pkg in reghdfe ftools ppmlhdfe {
     cap which `pkg'
     if _rc ssc install `pkg'
@@ -27,7 +37,7 @@ cap reghdfe, compile
 
 * 1) Compute domestic expenditure share lambda.
 
-use "../data/master_gravity_agg.dta", clear
+use "$DATA_CEP/master_gravity_agg.dta", clear
 cap gen ln_dist2 = ln_dist^2
 
 * RTA dummy from rta_coverage
@@ -58,7 +68,7 @@ preserve
     collapse (mean) lambda (mean) abs_dln, by(year)
     rename lambda mean_lambda
     rename abs_dln mean_abs_dln
-    export delimited using "../output/tables/table_lambda.csv", replace
+    export delimited using "$OUTTAB/table_lambda.csv", replace
 restore
 
 cap local ln_lam = `ln_lam_med'
@@ -189,7 +199,7 @@ preserve
          bnd_ek_s4 bnd_mel_s4
     rename bnd_ek_s4  bound_ek
     rename bnd_mel_s4 bound_melitz
-    export delimited using "../output/tables/table_empirical.csv", replace
+    export delimited using "$OUTTAB/table_empirical.csv", replace
 restore
 
 * Sigma robustness
@@ -199,7 +209,7 @@ list year Delta_eps bnd_mel_s3 bnd_mel_s4 bnd_mel_s5, noobs sep(0)
 preserve
     keep year Delta_eps bnd_mel_s3 bnd_mel_s4 bnd_mel_s5 ///
                         bnd_ek_s3  bnd_ek_s4  bnd_ek_s5
-    export delimited using "../output/tables/table_robustness_sigma.csv", replace
+    export delimited using "$OUTTAB/table_robustness_sigma.csv", replace
 restore
 
 * --- Robustness: distance only ---
@@ -216,13 +226,13 @@ preserve
          bnd_ek_s4 bnd_mel_s4
     rename bnd_ek_s4  bound_ek
     rename bnd_mel_s4 bound_melitz
-    export delimited using "../output/tables/table_empirical_distonly.csv", replace
+    export delimited using "$OUTTAB/table_empirical_distonly.csv", replace
 restore
 
 
 * 5) Sectoral estimation (HS02, 2019).
 
-use "../data/master_gravity_sec.dta", clear
+use "$DATA_CEP/master_gravity_sec.dta", clear
 
 * RTA dummy from rta_coverage
 cap gen rta = (rta_coverage > 0 & !missing(rta_coverage))
@@ -341,7 +351,7 @@ di as txt "Significant at 10%: `=r(sum)' / `=_N'"
 gsort p_b2
 list hs2 n_obs eps_pool beta2 p_b2 Delta_eps bnd_ek bnd_mel in 1/15, noobs
 
-export delimited using "../output/tables/table_sectoral.csv", replace
+export delimited using "$OUTTAB/table_sectoral.csv", replace
 
 * --- Export robustness sectoral ---
 
@@ -368,6 +378,6 @@ di as txt "Significant at 10%: `=r(sum)' / `=_N'"
 gsort p_b2
 list hs2 n_obs eps_pool beta2 p_b2 Delta_eps bnd_ek bnd_mel in 1/15, noobs
 
-export delimited using "../output/tables/table_sectoral_distonly.csv", replace
+export delimited using "$OUTTAB/table_sectoral_distonly.csv", replace
 
-di _n as txt "[Done] Tables saved to ../output/tables/"
+di _n as txt "[Done] Tables saved to $OUTTAB/"
